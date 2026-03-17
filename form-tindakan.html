@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tindakan Koreksi — PTK Adiputro</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #f59e0b, #b45309);
+      color: white;
+      padding: 20px 16px 16px;
+      border-radius: 12px 12px 0 0;
+      text-align: center;
+    }
+    .header .phase-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.25);
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .header h1 { font-size: 20px; font-weight: 700; }
+    .header p  { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+
+    .card {
+      background: white;
+      border-radius: 0 0 12px 12px;
+      padding: 20px 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* PTK Info Banner */
+    .ptk-info-banner {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+    }
+    .ptk-info-banner .ptk-number {
+      font-size: 15px; font-weight: 700; color: #92400e;
+    }
+    .ptk-info-banner .ptk-uraian {
+      font-size: 13px; color: #78350f; margin-top: 4px;
+      font-style: italic;
+    }
+    .ptk-info-banner .ptk-status {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #fef3c7; border-radius: 20px;
+      padding: 3px 10px; font-size: 12px; font-weight: 600;
+      color: #92400e; margin-top: 8px;
+    }
+
+    /* Form */
+    .form-group { margin-bottom: 16px; }
+    label {
+      display: block;
+      font-size: 13px; font-weight: 600;
+      color: #374151; margin-bottom: 6px;
+    }
+    label .req { color: #ef4444; }
+    input[type="text"],
+    input[type="tel"],
+    input[type="date"],
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #111827;
+      outline: none;
+      transition: border-color 0.2s;
+      background: #fafafa;
+    }
+    input:focus, textarea:focus {
+      border-color: #f59e0b;
+      background: white;
+    }
+    input[readonly] {
+      background: #f3f4f6;
+      color: #6b7280;
+      cursor: not-allowed;
+    }
+    textarea { resize: vertical; min-height: 90px; }
+
+    /* Upload */
+    .upload-area {
+      border: 2px dashed #d1d5db;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .upload-area:hover { border-color: #f59e0b; background: #fffbeb; }
+    .upload-area.has-file { border-color: #34a853; background: #f0fdf4; }
+    .upload-area input[type="file"] { display: none; }
+    .upload-icon { font-size: 32px; margin-bottom: 8px; }
+    .upload-text { font-size: 13px; color: #6b7280; }
+    .upload-sub  { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+    .upload-filename { font-size: 12px; color: #34a853; font-weight: 600; margin-top: 4px; }
+    #preview-sesudah {
+      max-width: 100%; max-height: 200px; border-radius: 8px;
+      margin-top: 10px; display: none; object-fit: cover;
+    }
+
+    /* Buttons */
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #f59e0b, #b45309);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      margin-top: 8px;
+    }
+    .btn-submit:hover:not(:disabled) { opacity: 0.9; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Alerts */
+    .alert {
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .alert.error   { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+    .alert.success { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+    .alert.info    { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+
+    /* Loading */
+    .loading { display: none; text-align: center; padding: 20px; }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 4px solid #e5e7eb;
+      border-top-color: #f59e0b;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* WA Result */
+    .wa-result { display: none; }
+    .wa-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: #25d366;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 14px; font-weight: 600;
+      margin-bottom: 8px;
+      transition: opacity 0.2s;
+    }
+    .wa-btn:hover { opacity: 0.9; }
+    .wa-note {
+      font-size: 12px; color: #6b7280;
+      background: #f9fafb; border-radius: 8px;
+      padding: 8px 12px; margin-top: 8px;
+    }
+    .success-icon { text-align: center; margin-bottom: 14px; }
+
+    /* Error state */
+    .error-state {
+      display: none; text-align: center; padding: 20px;
+    }
+    .error-state .error-icon { font-size: 48px; margin-bottom: 10px; }
+
+    .divider {
+      border: none; border-top: 1px solid #e5e7eb;
+      margin: 16px 0;
+    }
+    .section-title {
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.05em; color: #9ca3af; margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<div style="max-width:520px; margin:0 auto;">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="phase-badge">PHASE 2 dari 3</div>
+    <h1>🔧 Tindakan Koreksi PTK</h1>
+    <p>Adiputro — Departemen Putty Mini Bus</p>
+  </div>
+
+  <div class="card">
+    <div id="alert-msg" class="alert"></div>
+
+    <!-- Loading awal (ambil data PTK) -->
+    <div class="loading" id="loading-init" style="display:block;">
+      <div class="spinner"></div>
+      <p style="font-size:13px;color:#6b7280;">Memuat data PTK...</p>
+    </div>
+
+    <!-- Error state (PTK tidak ditemukan) -->
+    <div class="error-state" id="error-state">
+      <div class="error-icon">❌</div>
+      <h3 style="color:#991b1b;">PTK Tidak Ditemukan</h3>
+      <p id="error-msg-detail" style="font-size:13px;color:#6b7280;margin-top:8px;"></p>
+    </div>
+
+    <!-- Form Area -->
+    <div id="form-area" style="display:none;">
+      <!-- Info banner PTK -->
+      <div class="ptk-info-banner" id="ptk-banner">
+        <div class="ptk-number" id="banner-noptk">—</div>
+        <div class="ptk-uraian" id="banner-uraian">—</div>
+        <div class="ptk-status" id="banner-status">🟡 OPEN</div>
+      </div>
+
+      <div class="section-title">Identitas Pelaksana</div>
+
+      <div class="form-group">
+        <label>No. PTK</label>
+        <input type="text" id="noPTK" readonly placeholder="Diambil otomatis">
+      </div>
+
+      <div class="form-group">
+        <label>Nama Pelaksana <span class="req">*</span></label>
+        <input type="text" id="namaPelaksana" placeholder="Nama Anda" maxlength="80">
+      </div>
+
+      <div class="form-group">
+        <label>No. WhatsApp Pelaksana <span class="req">*</span></label>
+        <input type="tel" id="waPelaksana" placeholder="Contoh: 08123456789" maxlength="20">
+      </div>
+
+      <hr class="divider">
+      <div class="section-title">Detail Tindakan</div>
+
+      <div class="form-group">
+        <label>Tindakan Koreksi yang Dilakukan <span class="req">*</span></label>
+        <textarea id="tindakan" placeholder="Jelaskan tindakan koreksi yang telah dilakukan. Contoh: Permukaan yang mengelupas sudah dikupas ulang, dibersihkan dengan air compressor, kemudian didempul kembali menggunakan dempul halus. Sudah diamplas dan permukaan rata kembali..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Tanggal Selesai <span class="req">*</span></label>
+        <input type="date" id="tglSelesai">
+      </div>
+
+      <div class="form-group">
+        <label>Foto Sesudah (Opsional)</label>
+        <div class="upload-area" id="upload-area" onclick="document.getElementById('fotoSesudah').click()">
+          <input type="file" id="fotoSesudah" accept="image/*" capture="environment">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">Klik untuk upload foto kondisi setelah perbaikan</div>
+          <div class="upload-sub">(Tidak wajib, tapi sangat dianjurkan)</div>
+          <div class="upload-filename" id="upload-filename"></div>
+          <img id="preview-sesudah" alt="Preview foto sesudah">
+        </div>
+      </div>
+
+      <button class="btn-submit" id="btn-submit" onclick="submitTindakan()">
+        ✅ Kirim Tindakan Koreksi
+      </button>
+    </div>
+
+    <!-- Loading submit -->
+    <div class="loading" id="loading-submit">
+      <div class="spinner"></div>
+      <p style="font-size:13px;color:#6b7280;">Menyimpan tindakan koreksi...<br>Mohon tunggu</p>
+    </div>
+
+    <!-- Hasil WA -->
+    <div class="wa-result" id="wa-result">
+      <div class="success-icon">
+        <div style="font-size:48px;">✅</div>
+        <h3 style="font-size:16px;color:#166534;margin-top:4px;">Tindakan Koreksi Tersimpan!</h3>
+      </div>
+
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+        <div style="font-size:13px;color:#166534;">
+          Status PTK <strong id="result-noptk">—</strong> telah diubah menjadi:<br>
+          <strong style="font-size:15px;">🔵 MENUNGGU VERIFIKASI</strong>
+        </div>
+      </div>
+
+      <p style="font-size:13px;color:#374151;margin-bottom:12px;">
+        <strong>Langkah selanjutnya:</strong> Kirim notifikasi WhatsApp ke Penemu agar mereka dapat
+        melakukan verifikasi hasil perbaikan Anda.
+      </p>
+
+      <div id="wa-buttons-container"></div>
+
+      <div class="wa-note">
+        💡 <strong>Catatan:</strong> Setelah Anda menekan tombol WhatsApp dan mengirim pesan,
+        Penemu akan mendapat link untuk memverifikasi hasil perbaikan. Jika disetujui, PTK akan
+        ditutup (CLOSED). Jika tidak, Anda mungkin diminta melakukan REWORK.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ====================== KONFIGURASI ======================
+  var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDKgaDxil5lWuTPadYrDkGvFs9f7934t2cp-s3UC0wwMs3JYey0Ygaehb56OhhQ6EmVg/exec';
+
+  // ====================== INISIALISASI ======================
+  window.addEventListener('DOMContentLoaded', function() {
+    // Set tanggal default hari ini
+    var today = new Date().toISOString().split('T')[0];
+    document.getElementById('tglSelesai').value = today;
+
+    // Ambil parameter id dari URL
+    var urlParams = new URLSearchParams(window.location.search);
+    var noPTK = urlParams.get('id');
+
+    if (!noPTK) {
+      // Tidak ada ID → tampilkan form kosong (manual)
+      document.getElementById('loading-init').style.display = 'none';
+      document.getElementById('form-area').style.display = 'block';
+      showAlert('ℹ️ Tidak ada No. PTK di URL. Silakan isi manual.', 'info');
+    } else {
+      loadPTKData(noPTK);
+    }
+  });
+
+  // Preview foto
+  document.getElementById('fotoSesudah').addEventListener('change', function() {
+    var file = this.files[0];
+    if (!file) return;
+    document.getElementById('upload-filename').textContent = '✅ ' + file.name;
+    document.getElementById('upload-area').classList.add('has-file');
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = document.getElementById('preview-sesudah');
+      img.src = e.target.result;
+      img.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // ====================== LOAD DATA PTK ======================
+  async function loadPTKData(noPTK) {
+    try {
+      var resp = await fetch(SCRIPT_URL + '?action=getPTK&id=' + encodeURIComponent(noPTK));
+      var result = await resp.json();
+
+      if (!result.success) throw new Error(result.error);
+
+      var data = result.data;
+
+      // Isi form
+      document.getElementById('noPTK').value = data.noPTK;
+
+      // Tampilkan banner info
+      document.getElementById('banner-noptk').textContent = data.noPTK;
+      document.getElementById('banner-uraian').textContent = '📝 ' + (data.uraian || '—');
+      document.getElementById('banner-status').textContent = data.status || '🟡 OPEN';
+
+      // Periksa apakah status valid untuk tindakan
+      if (data.status === '✅ CLOSED') {
+        showErrorState('PTK ' + noPTK + ' sudah berstatus CLOSED. Tidak perlu tindakan koreksi lagi.');
+        return;
+      }
+
+      document.getElementById('loading-init').style.display = 'none';
+      document.getElementById('form-area').style.display = 'block';
+
+    } catch (err) {
+      document.getElementById('loading-init').style.display = 'none';
+      document.getElementById('error-state').style.display = 'block';
+      document.getElementById('error-msg-detail').textContent =
+        'Tidak dapat memuat data PTK "' + noPTK + '". ' + err.message;
+    }
+  }
+
+  function showErrorState(msg) {
+    document.getElementById('loading-init').style.display = 'none';
+    document.getElementById('error-state').style.display = 'block';
+    document.getElementById('error-msg-detail').textContent = msg;
+  }
+
+  // ====================== VALIDASI ======================
+  function validateForm() {
+    var noPTK         = document.getElementById('noPTK').value.trim();
+    var namaPelaksana = document.getElementById('namaPelaksana').value.trim();
+    var waPelaksana   = document.getElementById('waPelaksana').value.trim();
+    var tindakan      = document.getElementById('tindakan').value.trim();
+    var tglSelesai    = document.getElementById('tglSelesai').value;
+
+    if (!noPTK)         return 'No. PTK tidak ditemukan. Buka form ini dari link WhatsApp.';
+    if (!namaPelaksana) return 'Nama Pelaksana wajib diisi.';
+    if (!waPelaksana)   return 'No. WhatsApp Pelaksana wajib diisi.';
+    if (waPelaksana.replace(/\D/g, '').length < 9) return 'No. WhatsApp tidak valid.';
+    if (!tindakan)      return 'Deskripsi tindakan koreksi wajib diisi.';
+    if (tindakan.length < 10) return 'Tindakan terlalu singkat (minimal 10 karakter).';
+    if (!tglSelesai)    return 'Tanggal selesai wajib diisi.';
+    return null;
+  }
+
+  // ====================== HELPER ======================
+  function showAlert(msg, type) {
+    var el = document.getElementById('alert-msg');
+    el.className = 'alert ' + type;
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function fileToBase64(file) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function(e) { resolve(e.target.result.split(',')[1]); };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ====================== SUBMIT ======================
+  async function submitTindakan() {
+    document.getElementById('alert-msg').style.display = 'none';
+
+    var errMsg = validateForm();
+    if (errMsg) { showAlert('⚠️ ' + errMsg, 'error'); return; }
+
+    var noPTK         = document.getElementById('noPTK').value.trim();
+    var namaPelaksana = document.getElementById('namaPelaksana').value.trim();
+    var waPelaksana   = document.getElementById('waPelaksana').value.trim();
+    var tindakan      = document.getElementById('tindakan').value.trim();
+    var tglSelesai    = document.getElementById('tglSelesai').value;
+    var file          = document.getElementById('fotoSesudah').files[0];
+
+    // UI: loading
+    document.getElementById('form-area').style.display = 'none';
+    document.getElementById('loading-submit').style.display = 'block';
+    document.getElementById('btn-submit').disabled = true;
+
+    try {
+      var fotoBase64 = null, fotoName = null, fotoType = null;
+      if (file) {
+        fotoBase64 = await fileToBase64(file);
+        fotoName   = file.name;
+        fotoType   = file.type;
+      }
+
+      var payload = {
+        action        : 'tindakan',
+        noPTK         : noPTK,
+        namaPelaksana : namaPelaksana,
+        waPelaksana   : waPelaksana,
+        tindakan      : tindakan,
+        tglSelesai    : tglSelesai,
+        fotoSesudah   : fotoBase64,
+        fotoSesudahName: fotoName,
+        fotoSesudahType: fotoType
+      };
+
+      var resp = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body  : JSON.stringify(payload)
+      });
+      var result = await resp.json();
+
+      if (!result.success) throw new Error(result.error || 'Terjadi kesalahan di server');
+
+      showResult(result);
+
+    } catch (err) {
+      document.getElementById('form-area').style.display = 'block';
+      document.getElementById('loading-submit').style.display = 'none';
+      document.getElementById('btn-submit').disabled = false;
+      showAlert('❌ Gagal menyimpan: ' + err.message, 'error');
+    }
+  }
+
+  // ====================== HASIL ======================
+  function showResult(result) {
+    document.getElementById('loading-submit').style.display = 'none';
+    document.getElementById('wa-result').style.display = 'block';
+    document.getElementById('result-noptk').textContent = result.noPTK;
+
+    var container = document.getElementById('wa-buttons-container');
+    container.innerHTML = '';
+
+    if (!result.waLinks || result.waLinks.length === 0) {
+      container.innerHTML = '<div class="wa-note">⚠️ Nomor WA Penemu tidak ditemukan. Hubungi admin.</div>';
+      return;
+    }
+
+    result.waLinks.forEach(function(link) {
+      var a = document.createElement('a');
+      a.href = link.url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.className = 'wa-btn';
+      a.innerHTML =
+        '<svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.091.537 4.056 1.473 5.769L0 24l6.395-1.454A11.93 11.93 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.797 9.797 0 01-5.002-1.374l-.359-.213-3.797.863.878-3.688-.234-.379A9.79 9.79 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182S21.818 6.58 21.818 12 17.42 21.818 12 21.818z"/></svg>'
+        + 'Kirim WA ke ' + (link.nama || 'Penemu');
+      container.appendChild(a);
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verifikasi PTK — Adiputro</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #7c3aed, #4c1d95);
+      color: white;
+      padding: 20px 16px 16px;
+      border-radius: 12px 12px 0 0;
+      text-align: center;
+    }
+    .header .phase-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.25);
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .header h1 { font-size: 20px; font-weight: 700; }
+    .header p  { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+
+    .card {
+      background: white;
+      border-radius: 0 0 12px 12px;
+      padding: 20px 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* Summary PTK */
+    .ptk-summary {
+      background: #faf5ff;
+      border: 1px solid #ddd6fe;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+    .ptk-summary .ptk-num { font-size: 14px; font-weight: 700; color: #4c1d95; }
+    .ptk-summary .info-row {
+      display: flex; gap: 6px;
+      font-size: 12px; color: #6d28d9;
+      margin-top: 6px; align-items: flex-start;
+    }
+    .ptk-summary .info-row .icon { flex-shrink: 0; }
+    .ptk-summary .info-row .text { flex: 1; }
+    .ptk-summary .status-chip {
+      display: inline-flex; align-items: center;
+      background: #ede9fe; border-radius: 20px;
+      padding: 3px 10px; font-size: 12px; font-weight: 600;
+      color: #4c1d95; margin-top: 8px;
+    }
+    .foto-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; color: #7c3aed; text-decoration: none;
+      background: #ede9fe; border-radius: 6px; padding: 4px 10px;
+      margin-top: 6px; transition: background 0.2s;
+    }
+    .foto-link:hover { background: #ddd6fe; }
+
+    /* Form */
+    .form-group { margin-bottom: 16px; }
+    label {
+      display: block;
+      font-size: 13px; font-weight: 600;
+      color: #374151; margin-bottom: 6px;
+    }
+    label .req { color: #ef4444; }
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #111827;
+      outline: none;
+      transition: border-color 0.2s;
+      background: #fafafa;
+    }
+    input:focus, textarea:focus {
+      border-color: #7c3aed;
+      background: white;
+    }
+    input[readonly] {
+      background: #f3f4f6; color: #6b7280; cursor: not-allowed;
+    }
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* Hasil Verifikasi Selector */
+    .hasil-selector { display: flex; gap: 10px; }
+    .hasil-card {
+      flex: 1;
+      border: 2px solid #d1d5db;
+      border-radius: 10px;
+      padding: 14px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .hasil-card:hover { border-color: #9ca3af; background: #f9fafb; }
+    .hasil-card.selected-closed {
+      border-color: #22c55e; background: #f0fdf4;
+    }
+    .hasil-card.selected-rework {
+      border-color: #ef4444; background: #fef2f2;
+    }
+    .hasil-card .hasil-icon { font-size: 28px; margin-bottom: 6px; }
+    .hasil-card .hasil-label { font-size: 13px; font-weight: 700; }
+    .hasil-card .hasil-sub   { font-size: 11px; color: #6b7280; margin-top: 2px; }
+    .hasil-card input[type="radio"] { display: none; }
+
+    /* Conditional rework note */
+    #rework-section { display: none; margin-top: 12px; }
+
+    /* Buttons */
+    .btn-closed {
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, #22c55e, #15803d);
+      color: white; border: none; border-radius: 8px;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s; margin-top: 8px;
+    }
+    .btn-rework {
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: white; border: none; border-radius: 8px;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s; margin-top: 8px;
+    }
+    .btn-closed:hover:not(:disabled),
+    .btn-rework:hover:not(:disabled) { opacity: 0.9; }
+    .btn-closed:disabled,
+    .btn-rework:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Submit button (dynamic) */
+    #btn-submit { display: none; }
+
+    /* Alerts */
+    .alert {
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .alert.error   { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+    .alert.success { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+    .alert.info    { background: #faf5ff; border: 1px solid #ddd6fe; color: #4c1d95; }
+
+    /* Loading */
+    .loading { display: none; text-align: center; padding: 20px; }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 4px solid #e5e7eb;
+      border-top-color: #7c3aed;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Result */
+    .result-area { display: none; }
+    .result-banner {
+      border-radius: 10px; padding: 16px 14px;
+      text-align: center; margin-bottom: 14px;
+    }
+    .result-banner.closed {
+      background: #f0fdf4; border: 1px solid #86efac;
+    }
+    .result-banner.rework {
+      background: #fef2f2; border: 1px solid #fca5a5;
+    }
+    .wa-btn {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px; background: #25d366;
+      color: white; text-decoration: none;
+      border-radius: 8px; font-size: 14px; font-weight: 600;
+      margin-bottom: 8px; transition: opacity 0.2s;
+    }
+    .wa-btn:hover { opacity: 0.9; }
+    .wa-note {
+      font-size: 12px; color: #6b7280;
+      background: #f9fafb; border-radius: 8px;
+      padding: 8px 12px; margin-top: 8px;
+    }
+
+    /* Error state */
+    .error-state {
+      display: none; text-align: center; padding: 20px;
+    }
+
+    .divider {
+      border: none; border-top: 1px solid #e5e7eb; margin: 16px 0;
+    }
+    .section-title {
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.05em; color: #9ca3af; margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<div style="max-width:520px; margin:0 auto;">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="phase-badge">PHASE 3 dari 3</div>
+    <h1>🔍 Verifikasi Temuan PTK</h1>
+    <p>Adiputro — Departemen Putty Mini Bus</p>
+  </div>
+
+  <div class="card">
+    <div id="alert-msg" class="alert"></div>
+
+    <!-- Loading awal -->
+    <div class="loading" id="loading-init" style="display:block;">
+      <div class="spinner"></div>
+      <p style="font-size:13px;color:#6b7280;">Memuat data PTK...</p>
+    </div>
+
+    <!-- Error state -->
+    <div class="error-state" id="error-state">
+      <div style="font-size:48px;">❌</div>
+      <h3 style="color:#991b1b;margin-top:6px;">PTK Tidak Ditemukan</h3>
+      <p id="error-msg-detail" style="font-size:13px;color:#6b7280;margin-top:8px;"></p>
+    </div>
+
+    <!-- Form Area -->
+    <div id="form-area" style="display:none;">
+
+      <!-- Ringkasan PTK -->
+      <div class="ptk-summary" id="ptk-summary">
+        <div class="ptk-num" id="sum-noptk">—</div>
+        <div class="info-row">
+          <span class="icon">📝</span>
+          <span class="text" id="sum-uraian">—</span>
+        </div>
+        <div class="info-row">
+          <span class="icon">👤</span>
+          <span class="text" id="sum-penemu">—</span>
+        </div>
+        <div class="info-row">
+          <span class="icon">🔧</span>
+          <span class="text" id="sum-pelaksana">—</span>
+        </div>
+        <div class="info-row" id="sum-tindakan-row">
+          <span class="icon">✔</span>
+          <span class="text" id="sum-tindakan">—</span>
+        </div>
+        <div id="sum-foto-container"></div>
+        <div class="status-chip" id="sum-status">🔵 MENUNGGU VERIFIKASI</div>
+      </div>
+
+      <hr class="divider">
+      <div class="section-title">Identitas Verifikator</div>
+
+      <div class="form-group">
+        <label>No. PTK</label>
+        <input type="text" id="noPTK" readonly placeholder="Diambil otomatis">
+      </div>
+
+      <div class="form-group">
+        <label>Nama Verifikator <span class="req">*</span></label>
+        <input type="text" id="namaVerifikator" placeholder="Nama Anda (sebagai Penemu)" maxlength="80">
+      </div>
+
+      <hr class="divider">
+      <div class="section-title">Hasil Verifikasi <span class="req">*</span></div>
+
+      <div class="hasil-selector">
+        <label class="hasil-card" id="card-closed" onclick="selectHasil('CLOSED')">
+          <input type="radio" name="hasil" value="CLOSED">
+          <div class="hasil-icon">✅</div>
+          <div class="hasil-label" style="color:#15803d;">CLOSED</div>
+          <div class="hasil-sub">Temuan sudah teratasi<br>dengan baik</div>
+        </label>
+        <label class="hasil-card" id="card-rework" onclick="selectHasil('REWORK')">
+          <input type="radio" name="hasil" value="REWORK">
+          <div class="hasil-icon">🔴</div>
+          <div class="hasil-label" style="color:#b91c1c;">REWORK</div>
+          <div class="hasil-sub">Tindakan belum memadai,<br>perlu diperbaiki lagi</div>
+        </label>
+      </div>
+
+      <!-- Catatan REWORK (muncul jika pilih REWORK) -->
+      <div id="rework-section">
+        <div class="form-group" style="margin-top:0;">
+          <label style="color:#b91c1c;">Alasan REWORK <span class="req">*</span></label>
+          <textarea id="catatan" placeholder="Jelaskan mengapa tindakan koreksi belum memadai dan apa yang perlu diperbaiki. Contoh: Permukaan masih terasa bergelombang saat diraba. Dempul belum rata di bagian sudut pintu kiri bawah. Perlu diulang dari proses sanding..."></textarea>
+        </div>
+      </div>
+
+      <!-- Catatan CLOSED (opsional) -->
+      <div id="closed-section" style="display:none;">
+        <div class="form-group" style="margin-top:0;">
+          <label>Catatan Penutupan (Opsional)</label>
+          <textarea id="catatan-closed" placeholder="Catatan tambahan (opsional). Contoh: Hasil sudah memuaskan, permukaan rata dan tidak ada gelembung..."></textarea>
+        </div>
+      </div>
+
+      <button id="btn-submit" onclick="submitVerifikasi()"></button>
+    </div>
+
+    <!-- Loading submit -->
+    <div class="loading" id="loading-submit">
+      <div class="spinner"></div>
+      <p style="font-size:13px;color:#6b7280;">Menyimpan hasil verifikasi...</p>
+    </div>
+
+    <!-- Hasil -->
+    <div class="result-area" id="result-area">
+      <div class="result-banner" id="result-banner">
+        <div id="result-icon" style="font-size:48px;margin-bottom:8px;"></div>
+        <div id="result-title" style="font-size:16px;font-weight:700;"></div>
+        <div id="result-subtitle" style="font-size:13px;margin-top:4px;"></div>
+      </div>
+
+      <div id="wa-section"></div>
+
+      <div class="wa-note" id="result-note"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ====================== KONFIGURASI ======================
+  var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDKgaDxil5lWuTPadYrDkGvFs9f7934t2cp-s3UC0wwMs3JYey0Ygaehb56OhhQ6EmVg/exec';
+
+  var selectedHasil = null;
+
+  // ====================== INISIALISASI ======================
+  window.addEventListener('DOMContentLoaded', function() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var noPTK = urlParams.get('id');
+
+    if (!noPTK) {
+      document.getElementById('loading-init').style.display = 'none';
+      document.getElementById('form-area').style.display = 'block';
+      showAlert('ℹ️ Tidak ada No. PTK di URL. Isi manual jika perlu.', 'info');
+    } else {
+      loadPTKData(noPTK);
+    }
+  });
+
+  // ====================== LOAD DATA PTK ======================
+  async function loadPTKData(noPTK) {
+    try {
+      var resp = await fetch(SCRIPT_URL + '?action=getPTK&id=' + encodeURIComponent(noPTK));
+      var result = await resp.json();
+
+      if (!result.success) throw new Error(result.error);
+
+      var data = result.data;
+
+      // Isi field
+      document.getElementById('noPTK').value = data.noPTK;
+
+      // Isi summary
+      document.getElementById('sum-noptk').textContent = data.noPTK;
+      document.getElementById('sum-uraian').textContent = data.uraian || '—';
+      document.getElementById('sum-penemu').textContent = 'Penemu: ' + (data.namaPenemu || '—');
+      document.getElementById('sum-pelaksana').textContent = 'Pelaksana: ' + (data.namaPelaksana || 'Belum diisi');
+      document.getElementById('sum-tindakan').textContent = data.tindakan || 'Belum diisi';
+      document.getElementById('sum-status').textContent = data.status || '—';
+
+      // Foto sesudah (jika ada)
+      if (data.fotoSesudah) {
+        var fotoContainer = document.getElementById('sum-foto-container');
+        var a = document.createElement('a');
+        a.href = data.fotoSesudah;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.className = 'foto-link';
+        a.innerHTML = '📷 Lihat Foto Sesudah';
+        fotoContainer.appendChild(a);
+      }
+
+      // Pre-fill nama verifikator jika bisa tebak dari nama penemu
+      if (data.namaPenemu) {
+        document.getElementById('namaVerifikator').value = data.namaPenemu;
+      }
+
+      // Periksa status — hanya bisa verifikasi jika MENUNGGU VERIFIKASI
+      if (data.status === '✅ CLOSED') {
+        showErrorState('PTK ' + noPTK + ' sudah berstatus CLOSED. Verifikasi sudah selesai.');
+        return;
+      }
+      if (data.status === '🟡 OPEN') {
+        showErrorState('PTK ' + noPTK + ' masih berstatus OPEN. Tindakan koreksi belum diisi oleh Pelaksana.');
+        return;
+      }
+
+      document.getElementById('loading-init').style.display = 'none';
+      document.getElementById('form-area').style.display = 'block';
+
+    } catch (err) {
+      document.getElementById('loading-init').style.display = 'none';
+      document.getElementById('error-state').style.display = 'block';
+      document.getElementById('error-msg-detail').textContent =
+        'Tidak dapat memuat data PTK "' + noPTK + '": ' + err.message;
+    }
+  }
+
+  function showErrorState(msg) {
+    document.getElementById('loading-init').style.display = 'none';
+    document.getElementById('error-state').style.display = 'block';
+    document.getElementById('error-msg-detail').textContent = msg;
+  }
+
+  // ====================== SELECT HASIL ======================
+  function selectHasil(hasil) {
+    selectedHasil = hasil;
+
+    document.getElementById('card-closed').classList.remove('selected-closed', 'selected-rework');
+    document.getElementById('card-rework').classList.remove('selected-closed', 'selected-rework');
+
+    var btn = document.getElementById('btn-submit');
+    btn.style.display = 'block';
+    btn.className = '';
+
+    if (hasil === 'CLOSED') {
+      document.getElementById('card-closed').classList.add('selected-closed');
+      document.getElementById('rework-section').style.display = 'none';
+      document.getElementById('closed-section').style.display = 'block';
+      btn.className = 'btn-closed';
+      btn.textContent = '✅ Tutup PTK (CLOSED)';
+    } else {
+      document.getElementById('card-rework').classList.add('selected-rework');
+      document.getElementById('rework-section').style.display = 'block';
+      document.getElementById('closed-section').style.display = 'none';
+      btn.className = 'btn-rework';
+      btn.textContent = '🔴 Minta REWORK';
+    }
+  }
+
+  // ====================== VALIDASI ======================
+  function validateForm() {
+    var noPTK           = document.getElementById('noPTK').value.trim();
+    var namaVerifikator = document.getElementById('namaVerifikator').value.trim();
+
+    if (!noPTK)           return 'No. PTK tidak ditemukan.';
+    if (!namaVerifikator) return 'Nama Verifikator wajib diisi.';
+    if (!selectedHasil)   return 'Pilih hasil verifikasi: CLOSED atau REWORK.';
+
+    if (selectedHasil === 'REWORK') {
+      var catatan = document.getElementById('catatan').value.trim();
+      if (!catatan) return 'Alasan REWORK wajib diisi.';
+      if (catatan.length < 10) return 'Alasan REWORK terlalu singkat (minimal 10 karakter).';
+    }
+
+    return null;
+  }
+
+  // ====================== HELPER ======================
+  function showAlert(msg, type) {
+    var el = document.getElementById('alert-msg');
+    el.className = 'alert ' + type;
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  // ====================== SUBMIT ======================
+  async function submitVerifikasi() {
+    document.getElementById('alert-msg').style.display = 'none';
+
+    var errMsg = validateForm();
+    if (errMsg) { showAlert('⚠️ ' + errMsg, 'error'); return; }
+
+    var noPTK           = document.getElementById('noPTK').value.trim();
+    var namaVerifikator = document.getElementById('namaVerifikator').value.trim();
+    var catatan         = selectedHasil === 'REWORK'
+      ? document.getElementById('catatan').value.trim()
+      : (document.getElementById('catatan-closed').value.trim() || '');
+
+    // UI: loading
+    document.getElementById('form-area').style.display = 'none';
+    document.getElementById('loading-submit').style.display = 'block';
+
+    try {
+      var payload = {
+        action          : 'verifikasi',
+        noPTK           : noPTK,
+        hasil           : selectedHasil,
+        catatan         : catatan,
+        namaVerifikator : namaVerifikator
+      };
+
+      var resp = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body  : JSON.stringify(payload)
+      });
+      var result = await resp.json();
+
+      if (!result.success) throw new Error(result.error || 'Terjadi kesalahan di server');
+
+      showResult(result);
+
+    } catch (err) {
+      document.getElementById('form-area').style.display = 'block';
+      document.getElementById('loading-submit').style.display = 'none';
+      showAlert('❌ Gagal menyimpan: ' + err.message, 'error');
+    }
+  }
+
+  // ====================== HASIL ======================
+  function showResult(result) {
+    document.getElementById('loading-submit').style.display = 'none';
+    document.getElementById('result-area').style.display = 'block';
+
+    var banner   = document.getElementById('result-banner');
+    var icon     = document.getElementById('result-icon');
+    var title    = document.getElementById('result-title');
+    var subtitle = document.getElementById('result-subtitle');
+    var waSection = document.getElementById('wa-section');
+    var note     = document.getElementById('result-note');
+
+    if (result.hasil === 'CLOSED') {
+      banner.className = 'result-banner closed';
+      icon.textContent = '✅';
+      title.textContent = 'PTK Berhasil Ditutup!';
+      title.style.color = '#166534';
+      subtitle.textContent = 'No. PTK: ' + result.noPTK + ' — Status: ✅ CLOSED';
+      subtitle.style.color = '#15803d';
+      note.textContent = '🎉 Proses close loop selesai! Data PTK telah tersimpan di Google Sheets.';
+      waSection.innerHTML = '';
+
+    } else {
+      banner.className = 'result-banner rework';
+      icon.textContent = '🔴';
+      title.textContent = 'REWORK Diminta';
+      title.style.color = '#991b1b';
+      subtitle.textContent = 'No. PTK: ' + result.noPTK + ' — Status: 🔴 REWORK';
+      subtitle.style.color = '#b91c1c';
+      note.textContent = '📲 Kirim notifikasi WhatsApp ke Pelaksana agar mereka tahu perlu REWORK.';
+
+      if (result.waLinks && result.waLinks.length > 0) {
+        result.waLinks.forEach(function(link) {
+          var a = document.createElement('a');
+          a.href = link.url;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.className = 'wa-btn';
+          a.innerHTML =
+            '<svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.091.537 4.056 1.473 5.769L0 24l6.395-1.454A11.93 11.93 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.797 9.797 0 01-5.002-1.374l-.359-.213-3.797.863.878-3.688-.234-.379A9.79 9.79 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182S21.818 6.58 21.818 12 17.42 21.818 12 21.818z"/></svg>'
+            + 'Kirim WA REWORK ke ' + (link.nama || 'Pelaksana');
+          waSection.appendChild(a);
+        });
+      } else {
+        waSection.innerHTML = '<div class="wa-note">ℹ️ Tidak ada nomor WA Pelaksana. Hubungi Pelaksana secara langsung.</div>';
+      }
+    }
+  }
+</script>
+</body>
+</html>
