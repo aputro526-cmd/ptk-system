@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTK Close Loop — Panduan Lapangan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-primary: #1a1a1a;
+            --color-secondary: #666666;
+            --color-accent: #0066cc;
+            --color-success: #22863a;
+            --color-warning: #cb2431;
+            --color-info: #005cc5;
+            --color-bg: #ffffff;
+            --color-border: #e1e4e8;
+            --color-text: #24292e;
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: var(--spacing-md);
+        }
+
+        /* HEADER */
+        .header {
+            border-bottom: 2px solid var(--color-border);
+            padding-bottom: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-xs);
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            color: var(--color-secondary);
+        }
+
+        /* CONFIG PANEL */
+        .config-section {
+            background-color: #f6f8fb;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .config-toggle {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .config-toggle:hover {
+            color: var(--color-accent);
+        }
+
+        .config-icon {
+            font-size: 1.3rem;
+            margin-right: var(--spacing-sm);
+            transition: transform 0.3s ease;
+        }
+
+        .config-toggle.collapsed .config-icon {
+            transform: rotate(-90deg);
+        }
+
+        .config-content {
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .config-content.hidden {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        .config-field {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .config-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .config-input-group {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .config-input {
+            flex: 1;
+            padding: var(--spacing-sm);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-family: "Courier New", monospace;
+            background-color: white;
+            color: var(--color-text);
+        }
+
+        .config-input:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+
+        .copy-btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background-color: var(--color-accent);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .copy-btn:hover {
+            background-color: #0052a3;
+        }
+
+        .copy-btn.copied {
+            background-color: var(--color-success);
+        }
+
+        .config-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+            justify-content: flex-end;
+            margin-top: var(--spacing-md);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--color-border);
+        }
+
+        .btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--color-accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0052a3;
+        }
+
+        .btn-secondary {
+            background-color: var(--color-border);
+            color: var(--color-text);
+        }
+
+        .btn-secondary:hover {
+            background-color: #d1d5da;
+        }
+
+        /* TABS */
+        .tab-container {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .tab-nav {
+            display: flex;
+            border-bottom: 2px solid var(--color-border);
+            margin-bottom: var(--spacing-lg);
+            gap: 0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: var(--spacing-md);
+            background: none;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--color-secondary);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .tab-btn:hover {
+            color: var(--color-primary);
+            background-color: #f6f8fb;
+        }
+
+        .tab-btn.active {
+            color: var(--color-accent);
+            border-bottom-color: var(--color-accent);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* PHASE CONTENT */
+        .phase {
+            background-color: #f6f8fb;
+            border-left: 4px solid var(--color-accent);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+            border-radius: 4px;
+        }
+
+        .step {
+            display: flex;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .step:last-child {
+            margin-bottom: 0;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            background-color: var(--color-accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-right: var(--spacing-md);
+            margin-top: 2px;
+        }
+
+        .step-content h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .step-content p {
+            font-size: 0.9rem;
+            color: var(--color-secondary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .step-action {
+            display: inline-block;
+            margin-top: var(--spacing-xs);
+            padding: 6px 12px;
+            background-color: var(--color-accent);
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s ease;
+        }
+
+        .step-action:hover {
+            background-color: #0052a3;
+        }
+
+        .step-note {
+            background-color: white;
+            border-left: 3px solid #ffc107;
+            padding: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
+            font-size: 0.9rem;
+            color: var(--color-text);
+            border-radius: 2px;
+        }
+
+        .step-note strong {
+            color: var(--color-primary);
+        }
+
+        /* STATUS INDICATOR */
+        .status-badges {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+            margin: var(--spacing-md) 0;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            background-color: #f6f8fb;
+            border: 1px solid var(--color-border);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .badge.open {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+        }
+
+        .badge.pending {
+            background-color: #d1ecf1;
+            border-color: #0c5460;
+        }
+
+        .badge.closed {
+            background-color: #d4edda;
+            border-color: #22863a;
+        }
+
+        /* FOOTER */
+        .footer {
+            border-top: 1px solid var(--color-border);
+            padding-top: var(--spacing-lg);
+            margin-top: var(--spacing-xl);
+            text-align: center;
+            color: var(--color-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--spacing-sm);
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .config-input-group {
+                flex-direction: column;
+            }
+
+            .config-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .tab-btn {
+                padding: var(--spacing-sm);
+                font-size: 0.85rem;
+            }
+
+            .step {
+                flex-direction: column;
+            }
+
+            .step-number {
+                width: 28px;
+                height: 28px;
+                font-size: 0.8rem;
+                margin-right: var(--spacing-sm);
+                margin-bottom: var(--spacing-sm);
+            }
+        }
+
+        /* UTILITIES */
+        .divider {
+            height: 1px;
+            background-color: var(--color-border);
+            margin: var(--spacing-lg) 0;
+        }
+
+        .text-small {
+            font-size: 0.85rem;
+            color: var(--color-secondary);
+        }
+
+        .text-muted {
+            color: var(--color-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>📋 PTK CLOSE LOOP — Panduan Lapangan</h1>
+            <p>Adiputro Karoseri | Departemen Putty Mini Bus</p>
+        </div>
+
+        <!-- CONFIG PANEL -->
+        <div class="config-section">
+            <div class="config-toggle" onclick="toggleConfig()">
+                <span class="config-icon">⚙️</span>
+                <span>PENGATURAN LINK & NOMOR WA</span>
+            </div>
+            <div class="config-content" id="configContent">
+                <div class="config-field">
+                    <label class="config-label">📋 Link Form Laporan (Phase 1)</label>
+                    <div class="config-input-group">
+                        <input type="text" class="config-input" id="linkLapor" placeholder="https://aputro526-cmd.github.io/ptk-system/form-lapor.html" value="https://aputro526-cmd.github.io/ptk-system/form-lapor.html">
+                        <button class="copy-btn" onclick="copyToClipboard('linkLapor', this)">📋 Copy</button>
+                    </div>
+                </div>
+
+                <div class="config-field">
+                    <label class="config-label">🔧 Link Form Tindakan (Phase 2)</label>
+                    <div class="config-input-group">
+                        <input type="text" class="config-input" id="linkTindakan" placeholder="https://aputro526-cmd.github.io/ptk-system/form-tindakan.html" value="https://aputro526-cmd.github.io/ptk-system/form-tindakan.html">
+                        <button class="copy-btn" onclick="copyToClipboard('linkTindakan', this)">📋 Copy</button>
+                    </div>
+                </div>
+
+                <div class="config-field">
+                    <label class="config-label">✅ Link Form Verifikasi (Phase 3)</label>
+                    <div class="config-input-group">
+                        <input type="text" class="config-input" id="linkVerifikasi" placeholder="https://aputro526-cmd.github.io/ptk-system/form-verifikasi.html" value="https://aputro526-cmd.github.io/ptk-system/form-verifikasi.html">
+                        <button class="copy-btn" onclick="copyToClipboard('linkVerifikasi', this)">📋 Copy</button>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="config-field">
+                    <label class="config-label">📱 Nomor WA Foreman (Format: 628xxxxx)</label>
+                    <input type="text" class="config-input" id="waForeman" placeholder="628123456789" value="">
+                </div>
+
+                <div class="config-field">
+                    <label class="config-label">📱 Nomor WA Supervisor (Format: 628xxxxx)</label>
+                    <input type="text" class="config-input" id="waSupervisor" placeholder="628123456789" value="">
+                </div>
+
+                <div class="config-field">
+                    <label class="config-label">📱 Nomor WA Manager (Format: 628xxxxx)</label>
+                    <input type="text" class="config-input" id="waManager" placeholder="628123456789" value="">
+                </div>
+
+                <div class="config-buttons">
+                    <button class="btn btn-primary" onclick="saveConfig()">✓ Simpan Pengaturan</button>
+                    <button class="btn btn-secondary" onclick="resetConfig()">↻ Reset</button>
+                </div>
+
+                <p class="text-small" style="margin-top: var(--spacing-md); color: #666;">
+                    💡 Pengaturan disimpan di browser Anda. Tidak perlu edit ulang jika membuka di device yang sama.
+                </p>
+            </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="tab-container">
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="switchTab('lapor')">📋 LAPOR</button>
+                <button class="tab-btn" onclick="switchTab('tindakan')">🔧 TINDAKAN</button>
+                <button class="tab-btn" onclick="switchTab('verifikasi')">✅ VERIFIKASI</button>
+            </div>
+
+            <!-- TAB 1: LAPOR -->
+            <div class="tab-content active" id="tabLapor">
+                <h2 style="font-size: 1.3rem; margin-bottom: var(--spacing-md); color: var(--color-primary);">FASE 1 — PELAPORAN TEMUAN</h2>
+                <p style="color: var(--color-secondary); margin-bottom: var(--spacing-md);">Untuk Teknisi/Penemu yang menemukan ketidaksesuaian kualitas</p>
+
+                <div class="status-badges">
+                    <span class="badge open">🟡 Status: OPEN</span>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Buka Form Laporan</h3>
+                            <p>Klik tombol di bawah atau buka link dari browser HP/PC</p>
+                            <button class="step-action" onclick="openForm('lapor')">🔗 Buka Form Laporan</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Isi Data Diri</h3>
+                            <p>Masukkan nama Anda dan nomor WhatsApp aktif (format: 0812xxx atau 628xxx)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Jelaskan Temuan</h3>
+                            <p>Tulis detail temuan: lokasi, jenis masalah, dan unit yang bermasalah</p>
+                            <div class="step-note">
+                                <strong>Contoh:</strong> Dempul di sisi kanan Panel depan mengelupas, unit #345
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Upload Foto Temuan</h3>
+                            <p><strong>WAJIB ada foto!</strong> Ambil dari kamera HP atau pilih dari galeri</p>
+                            <div class="step-note">
+                                <strong>Tips:</strong> Ambil foto dari sudut yang jelas terlihat masalahnya
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <h3>Pilih Penanggung Jawab</h3>
+                            <p>Centang salah satu atau lebih: Foreman, Supervisor, atau Manager</p>
+                            <p style="color: var(--color-secondary); font-size: 0.85rem; margin-top: var(--spacing-xs);">Mereka akan mendapat notifikasi WhatsApp otomatis</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">6</div>
+                        <div class="step-content">
+                            <h3>Submit & Kirim WhatsApp</h3>
+                            <p>Klik "Kirim Laporan" → Tombol WA hijau akan muncul</p>
+                            <p style="color: var(--color-secondary); font-size: 0.85rem; margin-top: var(--spacing-xs);">Klik tombol WA → pilih kontak → Kirim</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: var(--spacing-md); margin-top: var(--spacing-lg); border-radius: 4px;">
+                    <strong style="color: var(--color-primary);">⚠️ PENTING — Simpan Nomor PTK!</strong>
+                    <p style="color: var(--color-text); margin-top: var(--spacing-xs); font-size: 0.9rem;">Setelah submit berhasil, sistem menampilkan nomor PTK unik (contoh: <code style="background: white; padding: 2px 6px; border-radius: 3px;">PTK-20260317-135932</code>). Screenshot atau catat nomor ini — Anda butuhkan saat verifikasi nanti!</p>
+                </div>
+            </div>
+
+            <!-- TAB 2: TINDAKAN -->
+            <div class="tab-content" id="tabTindakan">
+                <h2 style="font-size: 1.3rem; margin-bottom: var(--spacing-md); color: var(--color-primary);">FASE 2 — TINDAKAN KOREKSI</h2>
+                <p style="color: var(--color-secondary); margin-bottom: var(--spacing-md);">Untuk Pelaksana/Penanggung Jawab yang menerima notifikasi</p>
+
+                <div class="status-badges">
+                    <span class="badge pending">🔵 Status: MENUNGGU VERIFIKASI</span>
+                </div>
+
+                <div style="background-color: #d1ecf1; border-left: 4px solid #0c5460; padding: var(--spacing-md); margin-bottom: var(--spacing-lg); border-radius: 4px;">
+                    <strong style="color: var(--color-primary);">📱 Langkah Pertama:</strong>
+                    <p style="color: var(--color-text); margin-top: var(--spacing-xs); font-size: 0.9rem;">Anda akan menerima pesan WhatsApp berisi link langsung ke form. Tinggal klik link di WA — form terbuka dengan otomatis!</p>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Buka Link dari WhatsApp</h3>
+                            <p>Klik link dalam pesan WA yang diterima</p>
+                            <p style="color: var(--color-secondary); font-size: 0.85rem; margin-top: var(--spacing-xs);">No. PTK sudah terisi otomatis di form</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Isi Identitas Pelaksana</h3>
+                            <p>Masukkan nama Anda dan nomor WhatsApp yang aktif</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Deskripsi Tindakan Koreksi</h3>
+                            <p>Jelaskan langkah-langkah perbaikan yang telah dilakukan secara detail</p>
+                            <div class="step-note">
+                                <strong>Contoh:</strong> Dilepas dempul yang rusak, dibersihkan, diaplikasikan dempul baru, disanding hingga rata, dicat finishing
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Isi Tanggal Selesai</h3>
+                            <p>Tanggal hari ini sudah otomatis terisi. Ubah jika perbaikan selesai di hari berbeda</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <h3>Upload Foto Sesudah</h3>
+                            <p><strong>Sangat dianjurkan!</strong> Upload foto kondisi setelah perbaikan sebagai bukti</p>
+                            <div class="step-note">
+                                <strong>Tips:</strong> Foto dari sudut yang sama dengan foto awal untuk perbandingan jelas
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">6</div>
+                        <div class="step-content">
+                            <h3>Submit & Kirim ke Penemu</h3>
+                            <p>Klik "Kirim Tindakan Koreksi" → Tombol WA hijau akan muncul</p>
+                            <p style="color: var(--color-secondary); font-size: 0.85rem; margin-top: var(--spacing-xs);">Klik tombol WA → pilih Penemu → Kirim (untuk notifikasi verifikasi)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: VERIFIKASI -->
+            <div class="tab-content" id="tabVerifikasi">
+                <h2 style="font-size: 1.3rem; margin-bottom: var(--spacing-md); color: var(--color-primary);">FASE 3 — VERIFIKASI</h2>
+                <p style="color: var(--color-secondary); margin-bottom: var(--spacing-md);">Untuk Penemu yang perlu cek hasil perbaikan</p>
+
+                <div class="status-badges">
+                    <span class="badge closed">✅ Status: CLOSED</span>
+                    <span class="badge open">🔴 Status: REWORK (jika ditolak)</span>
+                </div>
+
+                <div style="background-color: #d1ecf1; border-left: 4px solid #0c5460; padding: var(--spacing-md); margin-bottom: var(--spacing-lg); border-radius: 4px;">
+                    <strong style="color: var(--color-primary);">📱 Langkah Pertama:</strong>
+                    <p style="color: var(--color-text); margin-top: var(--spacing-xs); font-size: 0.9rem;">Anda akan menerima pesan WhatsApp bahwa tindakan sudah selesai. Tinggal klik link di WA untuk verifikasi!</p>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Buka Link dari WhatsApp</h3>
+                            <p>Klik link dalam pesan WA yang diterima</p>
+                            <p style="color: var(--color-secondary); font-size: 0.85rem; margin-top: var(--spacing-xs);">Ringkasan lengkap PTK akan ditampilkan</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Periksa Hasil Perbaikan</h3>
+                            <p>Lihat deskripsi tindakan dan foto sesudah di form</p>
+                            <p style="color: var(--color-secondary); font-size: 0.85rem; margin-top: var(--spacing-xs);">Jika perlu, cek langsung di lapangan untuk memastikan</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Isi Nama Verifikator</h3>
+                            <p>Ketik nama Anda sebagai verifikator (nama Penemu sudah otomatis terisi)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Pilih Hasil Verifikasi</h3>
+                            <p>Klik salah satu:</p>
+                            <div style="margin-top: var(--spacing-sm); display: flex; gap: var(--spacing-sm); flex-wrap: wrap;">
+                                <span style="background: #d4edda; border: 1px solid #22863a; padding: 8px 16px; border-radius: 4px; font-weight: 600; color: #22863a; font-size: 0.9rem;">✅ CLOSED</span>
+                                <span style="font-size: 0.9rem; color: var(--color-secondary); align-self: center;">Perbaikan sudah memuaskan</span>
+                            </div>
+                            <div style="margin-top: var(--spacing-sm); display: flex; gap: var(--spacing-sm); flex-wrap: wrap;">
+                                <span style="background: #f8d7da; border: 1px solid #721c24; padding: 8px 16px; border-radius: 4px; font-weight: 600; color: #721c24; font-size: 0.9rem;">🔴 REWORK</span>
+                                <span style="font-size: 0.9rem; color: var(--color-secondary); align-self: center;">Perbaikan belum sempurna</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <h3>Jika REWORK — Isi Alasan</h3>
+                            <p><strong>WAJIB!</strong> Jelaskan alasan mengapa perbaikan ditolak dan apa yang masih kurang</p>
+                            <div class="step-note">
+                                <strong>Contoh:</strong> Permukaan masih tidak rata, masih ada gelembung udara di sisi kanan
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="step">
+                        <div class="step-number">6</div>
+                        <div class="step-content">
+                            <h3>Submit Hasil Verifikasi</h3>
+                            <p>Klik tombol CLOSED atau REWORK</p>
+                            <p style="color: var(--color-secondary); font-size: 0.85rem; margin-top: var(--spacing-xs);">Jika REWORK, klik tombol WA untuk kirim notifikasi ke Pelaksana agar mengulang perbaikan</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background-color: #d4edda; border-left: 4px solid #22863a; padding: var(--spacing-md); margin-top: var(--spacing-lg); border-radius: 4px;">
+                    <strong style="color: #155724;">✅ SELESAI!</strong>
+                    <p style="color: var(--color-text); margin-top: var(--spacing-xs); font-size: 0.9rem;">Jika CLOSED: PTK ini tidak perlu ditangani lagi. Jika REWORK: tunggu notifikasi pelaksana setelah perbaikan ulang.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATUS REFERENCE -->
+        <div style="background-color: #f6f8fb; border: 1px solid var(--color-border); padding: var(--spacing-md); margin-top: var(--spacing-xl); border-radius: 6px;">
+            <h3 style="font-size: 1rem; margin-bottom: var(--spacing-md); color: var(--color-primary);">📊 Referensi Status PTK</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md);">
+                <div>
+                    <strong style="color: var(--color-primary); font-size: 0.9rem;">🟡 OPEN</strong>
+                    <p style="font-size: 0.85rem; color: var(--color-secondary); margin-top: 4px;">Laporan baru masuk, belum ada tindakan</p>
+                </div>
+                <div>
+                    <strong style="color: var(--color-primary); font-size: 0.9rem;">🔵 MENUNGGU VERIFIKASI</strong>
+                    <p style="font-size: 0.85rem; color: var(--color-secondary); margin-top: 4px;">Tindakan sudah dilakukan, menunggu cek Penemu</p>
+                </div>
+                <div>
+                    <strong style="color: var(--color-primary); font-size: 0.9rem;">🔴 REWORK</strong>
+                    <p style="font-size: 0.85rem; color: var(--color-secondary); margin-top: 4px;">Verifikator minta perbaikan ulang</p>
+                </div>
+                <div>
+                    <strong style="color: var(--color-primary); font-size: 0.9rem;">✅ CLOSED</strong>
+                    <p style="font-size: 0.85rem; color: var(--color-secondary); margin-top: 4px;">PTK selesai, temuan sudah teratasi</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <p>PTK Close Loop — Panduan Lapangan | Adiputro Karoseri</p>
+            <p style="margin-top: var(--spacing-xs);">Dibuat Maret 2026 | Versi 1.0</p>
+        </div>
+    </div>
+
+    <script>
+        // CONFIG MANAGEMENT
+        const CONFIG_KEY = 'ptk_config';
+
+        function toggleConfig() {
+            const toggle = document.querySelector('.config-toggle');
+            const content = document.getElementById('configContent');
+            toggle.classList.toggle('collapsed');
+            content.classList.toggle('hidden');
+        }
+
+        function saveConfig() {
+            const config = {
+                linkLapor: document.getElementById('linkLapor').value,
+                linkTindakan: document.getElementById('linkTindakan').value,
+                linkVerifikasi: document.getElementById('linkVerifikasi').value,
+                waForeman: document.getElementById('waForeman').value,
+                waSupervisor: document.getElementById('waSupervisor').value,
+                waManager: document.getElementById('waManager').value
+            };
+            localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+            alert('✓ Pengaturan berhasil disimpan!');
+        }
+
+        function resetConfig() {
+            if (confirm('Apakah Anda yakin ingin mereset ke pengaturan default?')) {
+                localStorage.removeItem(CONFIG_KEY);
+                location.reload();
+            }
+        }
+
+        function loadConfig() {
+            const saved = localStorage.getItem(CONFIG_KEY);
+            if (saved) {
+                const config = JSON.parse(saved);
+                document.getElementById('linkLapor').value = config.linkLapor || '';
+                document.getElementById('linkTindakan').value = config.linkTindakan || '';
+                document.getElementById('linkVerifikasi').value = config.linkVerifikasi || '';
+                document.getElementById('waForeman').value = config.waForeman || '';
+                document.getElementById('waSupervisor').value = config.waSupervisor || '';
+                document.getElementById('waManager').value = config.waManager || '';
+            }
+        }
+
+        function copyToClipboard(elementId, button) {
+            const element = document.getElementById(elementId);
+            element.select();
+            document.execCommand('copy');
+            
+            button.textContent = '✓ Tersalin!';
+            button.classList.add('copied');
+            setTimeout(() => {
+                button.textContent = '📋 Copy';
+                button.classList.remove('copied');
+            }, 2000);
+        }
+
+        function openForm(phase) {
+            let url = '';
+            if (phase === 'lapor') {
+                url = document.getElementById('linkLapor').value;
+            } else if (phase === 'tindakan') {
+                url = document.getElementById('linkTindakan').value;
+            } else if (phase === 'verifikasi') {
+                url = document.getElementById('linkVerifikasi').value;
+            }
+            
+            if (url) {
+                window.open(url, '_blank');
+            } else {
+                alert('⚠️ Link belum diatur. Silakan atur di panel PENGATURAN di atas.');
+            }
+        }
+
+        // TAB SWITCHING
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById('tab' + capitalizeFirstLetter(tabName)).classList.add('active');
+
+            // Mark button as active
+            event.target.classList.add('active');
+        }
+
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        // INITIALIZE
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConfig();
+        });
+    </script>
+</body>
+</html>
